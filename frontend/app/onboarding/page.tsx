@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { MapPin, Loader2, CheckCircle } from "lucide-react";
+import { MapPin, Loader2, CheckCircle, Crown } from "lucide-react";
 import { LocationSelector } from "@/components/onboarding/LocationSelector";
 import { OnboardingHeader } from "@/components/onboarding/OnboardingHeader";
 import { LocationConfirmation } from "@/components/onboarding/LocationConfirmation";
@@ -42,6 +42,14 @@ export default function OnboardingPage() {
   const [autoDetectedLocation, setAutoDetectedLocation] =
     useState<Municipality | null>(null);
   const [showNotification, setShowNotification] = useState(false);
+  // For demo purposes - in a real app, this would come from user's subscription status
+  const [userTier, setUserTier] = useState<"free" | "premium">(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("user-tier");
+      return saved === "premium" || saved === "free" ? saved : "free";
+    }
+    return "free";
+  });
 
   const {
     coordinates,
@@ -49,6 +57,15 @@ export default function OnboardingPage() {
     loading: geoLoading,
     getCurrentLocation,
   } = useGeolocation();
+
+  // Helper function to update tier and save to localStorage
+  const updateUserTier = (newTier: "free" | "premium") => {
+    setUserTier(newTier);
+    setSelectedLocations([]); // Reset selections when switching tiers
+    if (typeof window !== "undefined") {
+      localStorage.setItem("user-tier", newTier);
+    }
+  };
 
   // Check authentication state on mount
   useEffect(() => {
@@ -141,11 +158,11 @@ export default function OnboardingPage() {
 
   if (!userAuth) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md shadow-lg border-0 bg-white">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-lg border-0 bg-surface">
           <CardContent className="text-center py-12">
-            <Loader2 className="w-8 h-8 text-blue-600 mx-auto mb-4 animate-spin" />
-            <p className="text-gray-600">Checking authentication...</p>
+            <Loader2 className="w-8 h-8 text-accent mx-auto mb-4 animate-spin" />
+            <p className="text-text-secondary">Checking authentication...</p>
           </CardContent>
         </Card>
       </div>
@@ -165,14 +182,12 @@ export default function OnboardingPage() {
           onHide={() => setShowNotification(false)}
         />
 
-        <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md shadow-lg border-0 bg-white">
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+          <Card className="w-full max-w-md shadow-lg border-0 bg-surface">
             <CardContent className="text-center py-12">
-              <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                All Set!
-              </h2>
-              <p className="text-gray-600 mb-6">
+              <CheckCircle className="w-16 h-16 text-success mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-text mb-2">All Set!</h2>
+              <p className="text-text-secondary mb-6">
                 You&apos;ll now receive notifications for your selected
                 locations.
               </p>
@@ -195,13 +210,13 @@ export default function OnboardingPage() {
         onHide={() => setShowNotification(false)}
       />
 
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           <OnboardingHeader />
 
-          <Card className="shadow-lg border-0 bg-white">
+          <Card className="shadow-lg border-0 bg-surface">
             <CardHeader className="text-center">
-              <CardTitle className="flex items-center justify-center gap-2 text-xl">
+              <CardTitle className="flex items-center justify-center gap-2 text-xl text-text">
                 <MapPin className="w-5 h-5" />
                 {currentStep === "location"
                   ? isReturningUser
@@ -209,7 +224,7 @@ export default function OnboardingPage() {
                     : "Choose Your Locations"
                   : "Confirm Locations"}
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-text-secondary">
                 {currentStep === "location"
                   ? "Select up to 3 municipalities to receive relevant local announcements."
                   : "We'll send you notifications for these locations."}
@@ -218,21 +233,21 @@ export default function OnboardingPage() {
 
             <CardContent className="space-y-4">
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-md p-3 text-sm text-red-600">
+                <div className="bg-error/10 border border-error/20 rounded-md p-3 text-sm text-error">
                   {error}
                 </div>
               )}
 
               {geoError && (
-                <div className="bg-amber-50 border border-amber-200 rounded-md p-3">
-                  <p className="text-sm text-amber-700 mb-2">
+                <div className="bg-warning/10 border border-warning/20 rounded-md p-3">
+                  <p className="text-sm text-warning mb-2">
                     📍 Location access denied or unavailable
                   </p>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={handleRetryLocation}
-                    className="text-xs"
+                    className="text-xs border-border text-text hover:bg-surface-raised"
                   >
                     Try Again
                   </Button>
@@ -241,17 +256,49 @@ export default function OnboardingPage() {
 
               {currentStep === "location" ? (
                 <>
+                  {/* Demo tier toggle for testing purposes */}
+                  <div className="flex items-center justify-center mb-4">
+                    <div className="flex items-center gap-2 bg-surface-raised rounded-full p-1">
+                      <Button
+                        variant={userTier === "free" ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => updateUserTier("free")}
+                        className={`rounded-full text-xs ${
+                          userTier === "free"
+                            ? "bg-accent text-white"
+                            : "text-text-muted hover:bg-surface"
+                        }`}
+                      >
+                        Free
+                      </Button>
+                      <Button
+                        variant={userTier === "premium" ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => updateUserTier("premium")}
+                        className={`rounded-full text-xs ${
+                          userTier === "premium"
+                            ? "bg-warning text-white"
+                            : "text-text-muted hover:bg-surface"
+                        }`}
+                      >
+                        <Crown className="w-3 h-3 mr-1" />
+                        Premium
+                      </Button>
+                    </div>
+                  </div>
+
                   <LocationSelector
                     selectedLocations={selectedLocations}
                     onSelectedLocationsChange={setSelectedLocations}
                     autoDetectedLocation={autoDetectedLocation}
                     isLoadingGeo={geoLoading}
+                    userTier={userTier}
                   />
 
                   <Button
                     onClick={handleGoToConfirmation}
                     disabled={selectedLocations.length === 0}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    className="w-full bg-accent hover:bg-accent-light text-white"
                   >
                     Continue
                   </Button>

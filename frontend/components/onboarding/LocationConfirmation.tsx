@@ -21,11 +21,10 @@ export function LocationConfirmation({
   loading,
   isReturningUser = false,
 }: LocationConfirmationProps) {
-
   const handleConfirm = () => {
     const confirmationData = {
       phone: phone,
-      locations: locations.map(location => formatLocationDisplay(location)),
+      locations: locations.map((location) => formatLocationDisplay(location)),
     };
     console.log("Confirmation Data:", confirmationData);
     onConfirm();
@@ -34,21 +33,21 @@ export function LocationConfirmation({
   return (
     <div className="space-y-4">
       <div className="text-center py-6">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-50 rounded-full mb-4">
-          <MapPin className="w-8 h-8 text-blue-600" />
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-accent/10 rounded-full mb-4">
+          <MapPin className="w-8 h-8 text-accent" />
         </div>
 
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <h3 className="text-lg font-semibold text-text mb-2">
           {isReturningUser
             ? "Locations confirmed! You'll continue receiving updates for:"
             : "Perfect! You're all set for"}
         </h3>
 
-        <div className="bg-blue-50 rounded-lg p-4 mb-4 space-y-2">
-          {locations.map(location => (
+        <div className="bg-accent/10 rounded-lg p-4 mb-4 space-y-2">
+          {locations.map((location) => (
             <div key={location.id}>
-              <p className="font-medium text-blue-900 text-lg">{location.name}</p>
-              <p className="text-blue-700 text-sm">
+              <p className="font-medium text-accent text-lg">{location.name}</p>
+              <p className="text-accent text-sm">
                 {location.province} • {location.region}
               </p>
             </div>
@@ -56,38 +55,38 @@ export function LocationConfirmation({
         </div>
 
         <div className="space-y-3 text-left">
-          <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
-            <Bell className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+          <div className="flex items-start gap-3 p-3 bg-success/10 rounded-lg">
+            <Bell className="w-5 h-5 text-success mt-0.5 flex-shrink-0" />
             <div>
-              <p className="font-medium text-green-800 text-sm">
+              <p className="font-medium text-success text-sm">
                 Class Suspensions
               </p>
-              <p className="text-green-700 text-xs">
+              <p className="text-success text-xs">
                 Get notified about school closures due to weather or emergencies
               </p>
             </div>
           </div>
 
-          <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
-            <Bell className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+          <div className="flex items-start gap-3 p-3 bg-accent/10 rounded-lg">
+            <Bell className="w-5 h-5 text-accent mt-0.5 flex-shrink-0" />
             <div>
-              <p className="font-medium text-blue-800 text-sm">
+              <p className="font-medium text-accent text-sm">
                 Local Announcements
               </p>
-              <p className="text-blue-700 text-xs">
+              <p className="text-accent text-xs">
                 Stay updated on community programs, services, and important
                 notices
               </p>
             </div>
           </div>
 
-          <div className="flex items-start gap-3 p-3 bg-amber-50 rounded-lg">
-            <Bell className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+          <div className="flex items-start gap-3 p-3 bg-warning/10 rounded-lg">
+            <Bell className="w-5 h-5 text-warning mt-0.5 flex-shrink-0" />
             <div>
-              <p className="font-medium text-amber-800 text-sm">
+              <p className="font-medium text-warning text-sm">
                 Emergency Alerts
               </p>
-              <p className="text-amber-700 text-xs">
+              <p className="text-warning text-xs">
                 Receive critical safety information and disaster warnings
               </p>
             </div>
@@ -99,7 +98,7 @@ export function LocationConfirmation({
         <Button
           onClick={handleConfirm}
           disabled={loading || locations.length === 0}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+          className="w-full bg-accent hover:bg-accent-light text-white"
         >
           {loading ? (
             <>
@@ -119,14 +118,14 @@ export function LocationConfirmation({
           onClick={onGoBack}
           variant="ghost"
           disabled={loading}
-          className="w-full"
+          className="w-full text-text-muted hover:text-text hover:bg-surface-raised"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Choose Different Locations
         </Button>
       </div>
 
-      <div className="text-center text-xs text-gray-500">
+      <div className="text-center text-xs text-text-subtle">
         You can change your locations anytime in settings
       </div>
     </div>

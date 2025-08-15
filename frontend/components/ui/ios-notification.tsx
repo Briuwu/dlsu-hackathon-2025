@@ -68,6 +68,7 @@ export const IOSNotification: React.FC<IOSNotificationProps> = ({
             {/* App Icon */}
             <div className="flex-shrink-0">
               {appIcon ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img src={appIcon} alt={title} className="w-8 h-8 rounded-lg" />
               ) : (
                 <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
