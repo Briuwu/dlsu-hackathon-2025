@@ -6,11 +6,9 @@ import {
   Loader2,
   Navigation,
   X,
-  Crown,
-  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+
 import {
   Command,
   CommandEmpty,
@@ -25,11 +23,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import {
-  Municipality,
-  philippineMunicipalities,
-  getAllProvinces,
-} from "@/lib/philippines-data";
+import { Municipality, philippineMunicipalities } from "@/lib/philippines-data";
 import { formatLocationDisplay } from "@/lib/location-utils";
 
 interface LocationSelectorProps {
@@ -37,7 +31,6 @@ interface LocationSelectorProps {
   onSelectedLocationsChange: (locations: Municipality[]) => void;
   autoDetectedLocation: Municipality | null;
   isLoadingGeo: boolean;
-  userTier?: "free" | "premium";
 }
 
 export function LocationSelector({
@@ -45,25 +38,11 @@ export function LocationSelector({
   onSelectedLocationsChange,
   autoDetectedLocation,
   isLoadingGeo,
-  userTier = "free",
 }: LocationSelectorProps) {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedProvince, setSelectedProvince] = useState<string>("");
-
-  const provinces = useMemo(() => getAllProvinces(), []);
-
-  // Define location limits based on user tier
-  const maxLocations = userTier === "premium" ? 5 : 1;
-  const tierDisplay = userTier === "premium" ? "Premium" : "Free";
-
   const filteredMunicipalities = useMemo(() => {
     let filtered = philippineMunicipalities;
-
-    // Filter by province if selected
-    if (selectedProvince && selectedProvince !== "All Provinces") {
-      filtered = filtered.filter((m) => m.province === selectedProvince);
-    }
 
     // Filter by search query
     if (searchQuery) {
@@ -77,7 +56,7 @@ export function LocationSelector({
     }
 
     return filtered.slice(0, 50); // Limit results for performance
-  }, [searchQuery, selectedProvince]);
+  }, [searchQuery]);
 
   const handleLocationToggle = (municipality: Municipality) => {
     const isSelected = selectedLocations.some((l) => l.id === municipality.id);
@@ -85,20 +64,16 @@ export function LocationSelector({
     if (isSelected) {
       newLocations = selectedLocations.filter((l) => l.id !== municipality.id);
     } else {
-      if (selectedLocations.length < maxLocations) {
-        newLocations = [...selectedLocations, municipality];
-      } else {
-        // You might want to show a toast or alert here in a real app
-        return; // Do nothing if limit is reached
-      }
+      // For single location, replace existing selection
+      newLocations = [municipality];
     }
     onSelectedLocationsChange(newLocations);
   };
 
   const handleAutoDetectSelect = (municipality: Municipality) => {
     const isSelected = selectedLocations.some((l) => l.id === municipality.id);
-    if (!isSelected && selectedLocations.length < maxLocations) {
-      onSelectedLocationsChange([...selectedLocations, municipality]);
+    if (!isSelected) {
+      onSelectedLocationsChange([municipality]);
     }
   };
 
@@ -139,46 +114,9 @@ export function LocationSelector({
       {/* Manual location selector */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <p className="text-sm font-medium text-text">
-              Select up to {maxLocations} location{maxLocations > 1 ? "s" : ""}
-            </p>
-            {userTier === "premium" && (
-              <Badge
-                variant="secondary"
-                className="text-xs bg-warning/10 text-warning border-warning/20"
-              >
-                <Crown className="w-3 h-3 mr-1" />
-                Premium
-              </Badge>
-            )}
-          </div>
-          {userTier === "free" && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-xs text-accent border-accent hover:bg-accent/10"
-            >
-              <Crown className="w-3 h-3 mr-1" />
-              Upgrade to Premium
-            </Button>
-          )}
+          <p className="text-sm font-medium text-text">Select your location</p>
         </div>
 
-        {userTier === "free" && (
-          <div className="bg-accent/10 border border-accent/20 rounded-md p-3">
-            <div className="flex items-start gap-2">
-              <Lock className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
-              <div className="text-sm">
-                <p className="font-medium text-accent">Free Plan Limitation</p>
-                <p className="text-accent text-xs">
-                  You can select 1 location. Upgrade to Premium to select up to
-                  5 locations and get priority notifications.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
         {/* Combobox */}
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
@@ -252,51 +190,30 @@ export function LocationSelector({
       {selectedLocations.length > 0 && (
         <div className="bg-surface-raised rounded-md p-3 space-y-2">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-text-secondary">
-              Selected locations ({selectedLocations.length}/{maxLocations}):
-            </p>
-            {userTier === "premium" && (
-              <Badge
-                variant="secondary"
-                className="text-xs bg-warning/10 text-warning border-warning/20"
-              >
-                <Crown className="w-3 h-3 mr-1" />
-                {tierDisplay}
-              </Badge>
-            )}
+            <p className="text-sm font-medium text-text">Selected location:</p>
           </div>
           <div className="flex flex-wrap gap-2">
             {selectedLocations.map((location) => (
-              <Badge
+              <div
                 key={location.id}
-                variant="secondary"
-                className="flex items-center gap-1.5"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-accent text-white border border-accent"
               >
-                <MapPin className="w-3 h-3" />
+                <MapPin className="w-4 h-4" />
                 {formatLocationDisplay(location)}
                 <button
                   onClick={() => handleLocationToggle(location)}
-                  className="ml-1 rounded-full hover:bg-surface p-0.5"
+                  className="ml-1 rounded-full hover:bg-white/20 p-1 transition-colors"
                   aria-label={`Remove ${formatLocationDisplay(location)}`}
                 >
                   <X className="w-3 h-3" />
                 </button>
-              </Badge>
+              </div>
             ))}
           </div>
-          <div className="text-xs text-text-muted mt-1 space-y-1">
+          <div className="text-xs text-text mt-1">
             <p>
-              You&apos;ll receive notifications for announcements in these
-              areas.
+              You&apos;ll receive notifications for announcements in this area.
             </p>
-            {userTier === "free" &&
-              selectedLocations.length >= maxLocations && (
-                <p className="text-accent">
-                  <Crown className="w-3 h-3 inline mr-1" />
-                  Upgrade to Premium to select up to 5 locations and get
-                  priority alerts.
-                </p>
-              )}
           </div>
         </div>
       )}

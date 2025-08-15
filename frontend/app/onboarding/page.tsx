@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { MapPin, Loader2, CheckCircle, Crown } from "lucide-react";
+import { MapPin, Loader2, CheckCircle } from "lucide-react";
 import { LocationSelector } from "@/components/onboarding/LocationSelector";
 import { OnboardingHeader } from "@/components/onboarding/OnboardingHeader";
 import { LocationConfirmation } from "@/components/onboarding/LocationConfirmation";
@@ -42,14 +42,6 @@ export default function OnboardingPage() {
   const [autoDetectedLocation, setAutoDetectedLocation] =
     useState<Municipality | null>(null);
   const [showNotification, setShowNotification] = useState(false);
-  // For demo purposes - in a real app, this would come from user's subscription status
-  const [userTier, setUserTier] = useState<"free" | "premium">(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("user-tier");
-      return saved === "premium" || saved === "free" ? saved : "free";
-    }
-    return "free";
-  });
 
   const {
     coordinates,
@@ -57,15 +49,6 @@ export default function OnboardingPage() {
     loading: geoLoading,
     getCurrentLocation,
   } = useGeolocation();
-
-  // Helper function to update tier and save to localStorage
-  const updateUserTier = (newTier: "free" | "premium") => {
-    setUserTier(newTier);
-    setSelectedLocations([]); // Reset selections when switching tiers
-    if (typeof window !== "undefined") {
-      localStorage.setItem("user-tier", newTier);
-    }
-  };
 
   // Check authentication state on mount
   useEffect(() => {
@@ -226,8 +209,8 @@ export default function OnboardingPage() {
               </CardTitle>
               <CardDescription className="text-text-secondary">
                 {currentStep === "location"
-                  ? "Select up to 3 municipalities to receive relevant local announcements."
-                  : "We'll send you notifications for these locations."}
+                  ? "Select a municipality to receive relevant local announcements."
+                  : "We'll send you notifications for this location."}
               </CardDescription>
             </CardHeader>
 
@@ -256,43 +239,11 @@ export default function OnboardingPage() {
 
               {currentStep === "location" ? (
                 <>
-                  {/* Demo tier toggle for testing purposes */}
-                  <div className="flex items-center justify-center mb-4">
-                    <div className="flex items-center gap-2 bg-surface-raised rounded-full p-1">
-                      <Button
-                        variant={userTier === "free" ? "default" : "ghost"}
-                        size="sm"
-                        onClick={() => updateUserTier("free")}
-                        className={`rounded-full text-xs ${
-                          userTier === "free"
-                            ? "bg-accent text-white"
-                            : "text-text-muted hover:bg-surface"
-                        }`}
-                      >
-                        Free
-                      </Button>
-                      <Button
-                        variant={userTier === "premium" ? "default" : "ghost"}
-                        size="sm"
-                        onClick={() => updateUserTier("premium")}
-                        className={`rounded-full text-xs ${
-                          userTier === "premium"
-                            ? "bg-warning text-white"
-                            : "text-text-muted hover:bg-surface"
-                        }`}
-                      >
-                        <Crown className="w-3 h-3 mr-1" />
-                        Premium
-                      </Button>
-                    </div>
-                  </div>
-
                   <LocationSelector
                     selectedLocations={selectedLocations}
                     onSelectedLocationsChange={setSelectedLocations}
                     autoDetectedLocation={autoDetectedLocation}
                     isLoadingGeo={geoLoading}
-                    userTier={userTier}
                   />
 
                   <Button
