@@ -10,7 +10,7 @@
 
 ## Participant Information
 
-- **Team Name:** Orion
+- **Team Name:** Untitled Document
 - **Team Members:**
   - Ian Vergara
   - Brian Millonte
