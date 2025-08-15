@@ -6,44 +6,29 @@ import { IPhoneStatusBar } from "@/components/ui/iphone-status-bar";
 import { IMessageHeader } from "@/components/ui/imessage-header";
 import { Conversation } from "@/components/ui/message-bubble";
 import { IMessageInput } from "@/components/ui/imessage-input";
-
-interface Message {
-  id: string;
-  text: string;
-  timestamp?: string;
-  isFromUser?: boolean;
-  isDelivered?: boolean;
-  isRead?: boolean;
-}
+import { useMessages } from "@/hooks/useMessages";
+import { getMobileNumber } from "@/lib/auth-utils";
 
 export default function MessagesPage() {
   const router = useRouter();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      text: "🚨 CLASS SUSPENSION ALERT: All classes in Marikina City are suspended for today, November 15, 2024 due to heavy rainfall and flooding in several areas. Stay safe! - PulsePH",
-      timestamp: "2:30 PM",
-      isFromUser: false,
-      isDelivered: true,
-      isRead: false,
-    },
-    {
-      id: "2",
-      text: "📚 SCHOLARSHIP OPPORTUNITY: Marikina City is now accepting applications for the Academic Excellence Scholarship Program. Deadline: November 25, 2024. Apply at City Hall. - PulsePH",
-      timestamp: "3:45 PM",
-      isFromUser: false,
-      isDelivered: true,
-      isRead: false,
-    },
-    {
-      id: "3",
-      text: "Walang pasok ya uwi kana - PulsePH automated message or sum shi",
-      timestamp: "4:07 PM",
-      isFromUser: false,
-      isDelivered: true,
-      isRead: false,
-    },
-  ]);
+
+  // Get mobile number from localStorage
+  const mobileNumber = getMobileNumber();
+
+  // Redirect to auth if no mobile number is found
+  useEffect(() => {
+    if (!mobileNumber) {
+      router.push("/auth");
+    }
+  }, [mobileNumber, router]);
+
+  // Use the custom hook for message management
+  const { messages, loading, error, isPolling, refetch } = useMessages({
+    mobileNumber,
+    pollInterval: 5000, // Fetch every 5 seconds
+    autoMarkAsRead: false, // Don't auto-mark as read for demo
+    showNotifications: false, // Disable notifications when on messages page
+  });
 
   const [currentTime, setCurrentTime] = useState("4:08 PM");
 
@@ -65,15 +50,9 @@ export default function MessagesPage() {
   }, []);
 
   const handleSendMessage = (message: string) => {
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      text: message,
-      timestamp: currentTime,
-      isFromUser: true,
-      isDelivered: true,
-      isRead: false,
-    };
-    setMessages((prev) => [...prev, newMessage]);
+    // For now, just log the message since we're focusing only on fetching
+    console.log("Message to send:", message);
+    // In the future, this would use the sendNewMessage function from the hook
   };
 
   const handleBackClick = () => {
@@ -81,8 +60,8 @@ export default function MessagesPage() {
   };
 
   const handleDetailsClick = () => {
-    // Simulate a new PulsePH notification for demo purposes
-    simulateNotification();
+    // Manually refetch messages
+    refetch();
   };
 
   const handleCameraClick = () => {
@@ -93,30 +72,37 @@ export default function MessagesPage() {
     console.log("Mic clicked");
   };
 
-  // Simulate receiving new PulsePH notifications
-  const simulateNotification = () => {
-    const sampleNotifications = [
-      "🌊 FLOOD WARNING: Marikina River water level is rising. Residents near riverbanks please prepare for possible evacuation. - PulsePH",
-      "💉 VACCINATION SCHEDULE: Free COVID-19 boosters available at Marikina Sports Center, Nov 16-18. Bring valid ID. - PulsePH",
-      "🚧 ROAD CLOSURE: JP Rizal Bridge will be closed for maintenance from 10PM-5AM tonight. Use alternate routes. - PulsePH",
-      "🎓 JOB FAIR: Marikina City Job Fair on November 20, 2024 at Riverbanks Mall. 100+ job opportunities available! - PulsePH",
-      "⚡ POWER INTERRUPTION: Scheduled power maintenance in Barangay Sta. Elena tomorrow 8AM-12PM. - PulsePH",
-    ];
-
-    const randomNotification =
-      sampleNotifications[
-        Math.floor(Math.random() * sampleNotifications.length)
-      ];
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      text: randomNotification,
-      timestamp: currentTime,
-      isFromUser: false,
-      isDelivered: true,
-      isRead: false,
-    };
-    setMessages((prev) => [...prev, newMessage]);
-  };
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="flex flex-col h-screen bg-white max-w-sm mx-auto border border-gray-300 rounded-lg overflow-hidden shadow-lg">
+        <IPhoneStatusBar
+          carrier="Sprint"
+          connectionType="LTE"
+          time={currentTime}
+          batteryLevel={75}
+          showBatteryPercentage={true}
+        />
+        <IMessageHeader
+          contactName="PulsePH"
+          onBackClick={handleBackClick}
+          onDetailsClick={handleDetailsClick}
+        />
+        <div className="flex-1 flex items-center justify-center bg-white">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
+            <p className="text-gray-500 text-sm">Loading messages...</p>
+          </div>
+        </div>
+        <IMessageInput
+          onSendMessage={handleSendMessage}
+          onCameraClick={handleCameraClick}
+          onMicClick={handleMicClick}
+          placeholder="Message"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-screen bg-white max-w-sm mx-auto border border-gray-300 rounded-lg overflow-hidden shadow-lg">
@@ -129,12 +115,25 @@ export default function MessagesPage() {
         showBatteryPercentage={true}
       />
 
-      {/* iMessage Header */}
+      {/* iMessage Header with polling indicator */}
       <IMessageHeader
-        contactName="PulsePH"
+        contactName={`PulsePH ${isPolling ? "🟢" : "🔴"}`}
         onBackClick={handleBackClick}
         onDetailsClick={handleDetailsClick}
       />
+
+      {/* Error Alert */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 p-2 mx-4 mt-2 rounded-md">
+          <p className="text-red-700 text-xs">{error}</p>
+          <button
+            onClick={refetch}
+            className="text-red-600 text-xs underline mt-1"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto bg-white">

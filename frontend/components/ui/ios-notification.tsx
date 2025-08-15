@@ -4,23 +4,27 @@ import { cn } from "@/lib/utils";
 interface IOSNotificationProps {
   show: boolean;
   onHide?: () => void;
+  onClick?: () => void;
   title?: string;
   message: string;
   appIcon?: string;
   time?: string;
   duration?: number;
   className?: string;
+  clickable?: boolean;
 }
 
 export const IOSNotification: React.FC<IOSNotificationProps> = ({
   show,
   onHide,
+  onClick,
   title = "PulsePH",
   message,
   appIcon,
   time = "now",
   duration = 4000,
   className,
+  clickable = false,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -46,6 +50,18 @@ export const IOSNotification: React.FC<IOSNotificationProps> = ({
     }
   }, [show, duration, onHide]);
 
+  const handleClick = () => {
+    if (clickable && onClick) {
+      onClick();
+      // Hide notification after click
+      setIsAnimating(false);
+      setTimeout(() => {
+        setIsVisible(false);
+        onHide?.();
+      }, 300);
+    }
+  };
+
   if (!isVisible) return null;
 
   return (
@@ -56,12 +72,14 @@ export const IOSNotification: React.FC<IOSNotificationProps> = ({
           isAnimating
             ? "translate-y-0 opacity-100 scale-100"
             : "-translate-y-full opacity-0 scale-95",
+          clickable && "cursor-pointer hover:scale-105",
           className
         )}
         style={{
           backdropFilter: "blur(20px)",
           backgroundColor: "rgba(255, 255, 255, 0.95)",
         }}
+        onClick={handleClick}
       >
         <div className="p-4">
           <div className="flex items-start space-x-3">

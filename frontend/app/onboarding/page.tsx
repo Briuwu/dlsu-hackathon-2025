@@ -14,8 +14,9 @@ import { MapPin, Loader2, CheckCircle } from "lucide-react";
 import { LocationSelector } from "@/components/onboarding/LocationSelector";
 import { OnboardingHeader } from "@/components/onboarding/OnboardingHeader";
 import { LocationConfirmation } from "@/components/onboarding/LocationConfirmation";
-import { IOSNotification } from "@/components/ui/ios-notification";
 import { useGeolocation } from "@/hooks/useGeolocation";
+import { useNotification } from "@/contexts/NotificationContext";
+import { useMessages } from "@/hooks/useMessages";
 import { type Municipality } from "@/lib/philippines-data";
 import { findNearestMunicipality } from "@/lib/location-utils";
 import {
@@ -23,6 +24,7 @@ import {
   saveUserProfile,
   getUserProfile,
   hasCompletedOnboarding,
+  getMobileNumber,
   type UserAuth,
   type UserProfile,
 } from "@/lib/auth-utils";
@@ -41,7 +43,21 @@ export default function OnboardingPage() {
   const [isReturningUser, setIsReturningUser] = useState(false);
   const [autoDetectedLocation, setAutoDetectedLocation] =
     useState<Municipality | null>(null);
-  const [showNotification, setShowNotification] = useState(false);
+  const [notificationShown, setNotificationShown] = useState(false);
+  const [shouldFetchMessages, setShouldFetchMessages] = useState(false);
+
+  const { showNotification } = useNotification();
+
+  // Get mobile number from localStorage
+  const mobileNumber = getMobileNumber();
+
+  // Only fetch messages after onboarding is submitted
+  const { messages: fetchedMessages } = useMessages({
+    mobileNumber: shouldFetchMessages && mobileNumber ? mobileNumber : "", // Use mobile number from localStorage if available
+    pollInterval: 60000, // Very slow polling (1 minute) - essentially one-time fetch for testing
+    autoMarkAsRead: false,
+    showNotifications: false, // Don't show notifications on onboarding
+  });
 
   const {
     coordinates,
@@ -81,25 +97,35 @@ export default function OnboardingPage() {
     }
   }, [coordinates]);
 
-  // Handle completion flow: show notification after 2s, redirect after it completes
+  // Handle completion flow: show notification with real data after 2s (no auto-redirect)
   useEffect(() => {
-    if (currentStep === "complete") {
-      // Show notification after 2 seconds
+    if (
+      currentStep === "complete" &&
+      fetchedMessages.length > 0 &&
+      !notificationShown
+    ) {
+      // Show notification after 2 seconds, but only if we have real messages and haven't shown it yet
       const notificationTimer = setTimeout(() => {
-        setShowNotification(true);
-      }, 2000);
+        // Get the latest message (most recent one)
+        const latestMessage = fetchedMessages[fetchedMessages.length - 1];
 
-      // Redirect after notification completes (2s delay + 4s notification = 6s total)
-      const redirectTimer = setTimeout(() => {
-        router.push("/messages");
-      }, 5000);
+        showNotification({
+          title: "PulsePH",
+          message: latestMessage.text,
+          time: latestMessage.timestamp || "now",
+          clickAction: "navigate",
+          navigateTo: "/messages",
+          duration: 6000, // Show longer since no auto-redirect
+        });
+
+        setNotificationShown(true); // Mark as shown to prevent duplicates
+      }, 2000);
 
       return () => {
         clearTimeout(notificationTimer);
-        clearTimeout(redirectTimer);
       };
     }
-  }, [currentStep, router]);
+  }, [currentStep, fetchedMessages, showNotification, notificationShown]);
 
   const handleGoToConfirmation = () => {
     if (selectedLocations.length === 0) {
@@ -125,6 +151,9 @@ export default function OnboardingPage() {
       };
 
       saveUserProfile(userProfile);
+
+      // Start fetching messages now that onboarding is complete
+      setShouldFetchMessages(true);
 
       setCurrentStep("complete");
     } catch {
@@ -154,120 +183,95 @@ export default function OnboardingPage() {
 
   if (currentStep === "complete") {
     return (
-      <>
-        {/* iOS Notification - Also render here for complete step */}
-        <IOSNotification
-          show={showNotification}
-          title="PulsePH"
-          message="🚨 CLASS SUSPENSION: All classes in Marikina City are suspended today due to heavy rainfall. Stay safe!"
-          time="now"
-          duration={3000}
-          onHide={() => setShowNotification(false)}
-        />
-
-        <div className="min-h-screen bg-background flex items-center justify-center p-4">
-          <Card className="w-full max-w-md shadow-lg border-0 bg-surface">
-            <CardContent className="text-center py-12">
-              <CheckCircle className="w-16 h-16 text-success mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-text mb-2">All Set!</h2>
-              <p className="text-text-secondary mb-6">
-                You&apos;ll now receive notifications for your selected
-                locations.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </>
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-lg border-0 bg-surface">
+          <CardContent className="text-center py-12">
+            <CheckCircle className="w-16 h-16 text-success mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-text mb-2">All Set!</h2>
+            <p className="text-text-secondary mb-6">
+              You&apos;ll now receive notifications for your selected locations.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <>
-      {/* iOS Notification */}
-      <IOSNotification
-        show={showNotification}
-        title="PulsePH"
-        message="🚨 CLASS SUSPENSION: All classes in Marikina City are suspended today due to heavy rainfall. Stay safe!"
-        time="now"
-        duration={3000}
-        onHide={() => setShowNotification(false)}
-      />
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <OnboardingHeader />
 
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <OnboardingHeader />
+        <Card className="shadow-lg border-0 bg-surface">
+          <CardHeader className="text-center">
+            <CardTitle className="flex items-center justify-center gap-2 text-xl text-text">
+              <MapPin className="w-5 h-5" />
+              {currentStep === "location"
+                ? isReturningUser
+                  ? "Update Your Locations"
+                  : "Choose Your Locations"
+                : "Confirm Locations"}
+            </CardTitle>
+            <CardDescription className="text-text-secondary">
+              {currentStep === "location"
+                ? "Select a municipality to receive relevant local announcements."
+                : "We'll send you notifications for this location."}
+            </CardDescription>
+          </CardHeader>
 
-          <Card className="shadow-lg border-0 bg-surface">
-            <CardHeader className="text-center">
-              <CardTitle className="flex items-center justify-center gap-2 text-xl text-text">
-                <MapPin className="w-5 h-5" />
-                {currentStep === "location"
-                  ? isReturningUser
-                    ? "Update Your Locations"
-                    : "Choose Your Locations"
-                  : "Confirm Locations"}
-              </CardTitle>
-              <CardDescription className="text-text-secondary">
-                {currentStep === "location"
-                  ? "Select a municipality to receive relevant local announcements."
-                  : "We'll send you notifications for this location."}
-              </CardDescription>
-            </CardHeader>
+          <CardContent className="space-y-4">
+            {error && (
+              <div className="bg-error/10 border border-error/20 rounded-md p-3 text-sm text-error">
+                {error}
+              </div>
+            )}
 
-            <CardContent className="space-y-4">
-              {error && (
-                <div className="bg-error/10 border border-error/20 rounded-md p-3 text-sm text-error">
-                  {error}
-                </div>
-              )}
+            {geoError && (
+              <div className="bg-warning/10 border border-warning/20 rounded-md p-3">
+                <p className="text-sm text-warning mb-2">
+                  📍 Location access denied or unavailable
+                </p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleRetryLocation}
+                  className="text-xs border-border text-text hover:bg-surface-raised"
+                >
+                  Try Again
+                </Button>
+              </div>
+            )}
 
-              {geoError && (
-                <div className="bg-warning/10 border border-warning/20 rounded-md p-3">
-                  <p className="text-sm text-warning mb-2">
-                    📍 Location access denied or unavailable
-                  </p>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleRetryLocation}
-                    className="text-xs border-border text-text hover:bg-surface-raised"
-                  >
-                    Try Again
-                  </Button>
-                </div>
-              )}
-
-              {currentStep === "location" ? (
-                <>
-                  <LocationSelector
-                    selectedLocations={selectedLocations}
-                    onSelectedLocationsChange={setSelectedLocations}
-                    autoDetectedLocation={autoDetectedLocation}
-                    isLoadingGeo={geoLoading}
-                  />
-
-                  <Button
-                    onClick={handleGoToConfirmation}
-                    disabled={selectedLocations.length === 0}
-                    className="w-full bg-accent hover:bg-accent-light text-white"
-                  >
-                    Continue
-                  </Button>
-                </>
-              ) : (
-                <LocationConfirmation
-                  locations={selectedLocations}
-                  phone={userAuth.phoneNumber}
-                  onConfirm={handleComplete}
-                  onGoBack={() => setCurrentStep("location")}
-                  loading={loading}
-                  isReturningUser={isReturningUser}
+            {currentStep === "location" ? (
+              <>
+                <LocationSelector
+                  selectedLocations={selectedLocations}
+                  onSelectedLocationsChange={setSelectedLocations}
+                  autoDetectedLocation={autoDetectedLocation}
+                  isLoadingGeo={geoLoading}
                 />
-              )}
-            </CardContent>
-          </Card>
-        </div>
+
+                <Button
+                  onClick={handleGoToConfirmation}
+                  disabled={selectedLocations.length === 0}
+                  className="w-full bg-accent hover:bg-accent-light text-white"
+                >
+                  Continue
+                </Button>
+              </>
+            ) : (
+              <LocationConfirmation
+                locations={selectedLocations}
+                phone={userAuth.phoneNumber}
+                onConfirm={handleComplete}
+                onGoBack={() => setCurrentStep("location")}
+                loading={loading}
+                isReturningUser={isReturningUser}
+              />
+            )}
+          </CardContent>
+        </Card>
       </div>
-    </>
+    </div>
   );
 }

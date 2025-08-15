@@ -107,6 +107,14 @@ export const clearAuthData = (): void => {
 };
 
 /**
+ * Get mobile number from localStorage
+ */
+export const getMobileNumber = (): string => {
+  const authData = getAuthData();
+  return authData?.phoneNumber || "";
+};
+
+/**
  * Get the appropriate redirect URL based on user state
  */
 export const getRedirectUrl = (): string => {
