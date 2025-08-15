@@ -183,28 +183,28 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-accent rounded-full mb-4">
             <MessageCircle className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">PulsePH</h1>
-          <p className="text-sm text-gray-600 mt-2">
+          <h1 className="text-2xl font-bold text-text">PulsePH</h1>
+          <p className="text-sm text-text-secondary mt-2">
             Feel the heartbeat of your local community
           </p>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-text-muted">
             LGU announcements right on your fingertips
           </p>
         </div>
 
-        <Card className="shadow-lg border-0 bg-white">
+        <Card className="shadow-lg border-0 bg-surface">
           <CardHeader className="text-center">
-            <CardTitle className="flex items-center justify-center gap-2 text-xl">
+            <CardTitle className="flex items-center justify-center gap-2 text-xl text-text">
               <Smartphone className="w-5 h-5" />
               {step === "phone" ? "Welcome to PulsePH" : "Verify Code"}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-text-secondary">
               {step === "phone"
                 ? "Enter your phone number to get started. Works for both new and existing users."
                 : "Enter the 6-digit code"}
@@ -212,7 +212,7 @@ export default function AuthPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-3 text-sm text-red-600">
+              <div className="bg-error/10 border border-error/20 rounded-md p-3 text-sm text-error">
                 {error}
               </div>
             )}
@@ -222,7 +222,7 @@ export default function AuthPage() {
                 <div className="space-y-2">
                   <label
                     htmlFor="phone"
-                    className="text-sm font-medium text-gray-700"
+                    className="text-sm font-medium text-text"
                   >
                     Philippine Mobile Number
                   </label>
@@ -236,13 +236,13 @@ export default function AuthPage() {
                     disabled={loading}
                     maxLength={16}
                   />
-                  <p className="text-xs text-gray-500 text-center">
+                  <p className="text-xs text-text-muted text-center">
                     Philippines mobile numbers only (must start with +63 9XX)
                   </p>
                 </div>
                 <Button
                   onClick={handleSendOTP}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  className="w-full bg-accent hover:bg-accent-light text-white"
                   disabled={loading}
                 >
                   {loading ? "Generating Code..." : "Send Verification Code"}
@@ -253,7 +253,7 @@ export default function AuthPage() {
                 <div className="space-y-2">
                   <label
                     htmlFor="otp"
-                    className="text-sm font-medium text-gray-700"
+                    className="text-sm font-medium text-text"
                   >
                     Verification Code
                   </label>
@@ -274,11 +274,11 @@ export default function AuthPage() {
                       </InputOTPGroup>
                     </InputOTP>
                   </div>
-                  <p className="text-xs text-gray-500 text-center">
+                  <p className="text-xs text-text-muted text-center">
                     Code generated for {phoneNumber}
                   </p>
                   {generatedOTP && (
-                    <p className="text-xs text-blue-600 text-center bg-blue-50 p-2 rounded">
+                    <p className="text-xs text-accent text-center bg-accent/10 p-2 rounded">
                       💡 Demo OTP: {generatedOTP}
                     </p>
                   )}
@@ -286,7 +286,7 @@ export default function AuthPage() {
                 <div className="space-y-2">
                   <Button
                     onClick={handleVerifyOTP}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    className="w-full bg-accent hover:bg-accent-light text-white"
                     disabled={loading || otp.length !== 6}
                   >
                     {loading ? "Verifying..." : "Verify Code"}
@@ -294,7 +294,7 @@ export default function AuthPage() {
                   <Button
                     onClick={handleBack}
                     variant="outline"
-                    className="w-full"
+                    className="w-full border-border text-text hover:bg-surface-raised"
                     disabled={loading}
                   >
                     Back
@@ -303,7 +303,7 @@ export default function AuthPage() {
               </>
             )}
 
-            <div className="text-center text-xs text-gray-500 mt-6">
+            <div className="text-center text-xs text-text-subtle mt-6">
               By continuing, you agree to our Terms of Service and Privacy
               Policy
             </div>

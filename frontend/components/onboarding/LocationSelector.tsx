@@ -106,13 +106,13 @@ export function LocationSelector({
     <div className="space-y-4">
       {/* Auto-detected location section */}
       {isLoadingGeo && (
-        <div className="bg-blue-50 border border-blue-200 rounded-md p-3 flex items-center gap-3">
-          <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+        <div className="bg-accent/10 border border-accent/20 rounded-md p-3 flex items-center gap-3">
+          <Loader2 className="w-4 h-4 animate-spin text-accent" />
           <div>
-            <p className="text-sm font-medium text-blue-700">
+            <p className="text-sm font-medium text-accent">
               📍 Detecting your location...
             </p>
-            <p className="text-xs text-blue-600">
+            <p className="text-xs text-accent">
               This will help us suggest your municipality
             </p>
           </div>
@@ -120,15 +120,15 @@ export function LocationSelector({
       )}
 
       {autoDetectedLocation && (
-        <div className="bg-green-50 border border-green-200 rounded-md p-3">
-          <p className="text-sm font-medium text-green-700 mb-2">
+        <div className="bg-success/10 border border-success/20 rounded-md p-3">
+          <p className="text-sm font-medium text-success mb-2">
             📍 We detected you might be in:
           </p>
           <Button
             variant="outline"
             size="sm"
             onClick={() => handleAutoDetectSelect(autoDetectedLocation)}
-            className="text-green-700 border-green-300 hover:bg-green-100"
+            className="text-success border-success hover:bg-success/10"
           >
             <Navigation className="w-3 h-3 mr-1" />
             {formatLocationDisplay(autoDetectedLocation)}
@@ -140,13 +140,13 @@ export function LocationSelector({
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <p className="text-sm font-medium">
+            <p className="text-sm font-medium text-text">
               Select up to {maxLocations} location{maxLocations > 1 ? "s" : ""}
             </p>
             {userTier === "premium" && (
               <Badge
                 variant="secondary"
-                className="text-xs bg-yellow-100 text-yellow-800 border-yellow-300"
+                className="text-xs bg-warning/10 text-warning border-warning/20"
               >
                 <Crown className="w-3 h-3 mr-1" />
                 Premium
@@ -157,7 +157,7 @@ export function LocationSelector({
             <Button
               variant="outline"
               size="sm"
-              className="text-xs text-blue-600 border-blue-300 hover:bg-blue-50"
+              className="text-xs text-accent border-accent hover:bg-accent/10"
             >
               <Crown className="w-3 h-3 mr-1" />
               Upgrade to Premium
@@ -166,14 +166,12 @@ export function LocationSelector({
         </div>
 
         {userTier === "free" && (
-          <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+          <div className="bg-accent/10 border border-accent/20 rounded-md p-3">
             <div className="flex items-start gap-2">
-              <Lock className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+              <Lock className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
               <div className="text-sm">
-                <p className="font-medium text-blue-700">
-                  Free Plan Limitation
-                </p>
-                <p className="text-blue-600 text-xs">
+                <p className="font-medium text-accent">Free Plan Limitation</p>
+                <p className="text-accent text-xs">
                   You can select 1 location. Upgrade to Premium to select up to
                   5 locations and get priority notifications.
                 </p>
@@ -188,25 +186,25 @@ export function LocationSelector({
               variant="outline"
               role="combobox"
               aria-expanded={open}
-              className="w-full justify-between"
+              className="w-full justify-between border-border bg-surface text-text hover:bg-surface-raised"
             >
               {selectedLocations.length > 0 ? (
-                <span className="flex items-center gap-2 truncate">
+                <span className="flex items-center gap-2 truncate text-text">
                   <MapPin className="w-4 h-4 flex-shrink-0" />
                   <span className="truncate">
                     {selectedLocations.length} location(s) selected
                   </span>
                 </span>
               ) : (
-                <span className="text-gray-500 flex items-center gap-2">
+                <span className="text-text-muted flex items-center gap-2">
                   <MapPin className="w-4 h-4" />
                   Select municipalities...
                 </span>
               )}
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-text-muted" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-full p-0 bg-white" align="start">
+          <PopoverContent className="w-full p-0" align="start">
             <Command>
               <CommandInput
                 placeholder="Search municipalities..."
@@ -252,15 +250,15 @@ export function LocationSelector({
 
       {/* Selected locations preview */}
       {selectedLocations.length > 0 && (
-        <div className="bg-gray-50 rounded-md p-3 space-y-2">
+        <div className="bg-surface-raised rounded-md p-3 space-y-2">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-text-secondary">
               Selected locations ({selectedLocations.length}/{maxLocations}):
             </p>
             {userTier === "premium" && (
               <Badge
                 variant="secondary"
-                className="text-xs bg-yellow-100 text-yellow-800 border-yellow-300"
+                className="text-xs bg-warning/10 text-warning border-warning/20"
               >
                 <Crown className="w-3 h-3 mr-1" />
                 {tierDisplay}
@@ -278,7 +276,7 @@ export function LocationSelector({
                 {formatLocationDisplay(location)}
                 <button
                   onClick={() => handleLocationToggle(location)}
-                  className="ml-1 rounded-full hover:bg-gray-300 p-0.5"
+                  className="ml-1 rounded-full hover:bg-surface p-0.5"
                   aria-label={`Remove ${formatLocationDisplay(location)}`}
                 >
                   <X className="w-3 h-3" />
@@ -286,14 +284,14 @@ export function LocationSelector({
               </Badge>
             ))}
           </div>
-          <div className="text-xs text-gray-500 mt-1 space-y-1">
+          <div className="text-xs text-text-muted mt-1 space-y-1">
             <p>
               You&apos;ll receive notifications for announcements in these
               areas.
             </p>
             {userTier === "free" &&
               selectedLocations.length >= maxLocations && (
-                <p className="text-blue-600">
+                <p className="text-accent">
                   <Crown className="w-3 h-3 inline mr-1" />
                   Upgrade to Premium to select up to 5 locations and get
                   priority alerts.

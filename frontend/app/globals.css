@@ -1,2 +1,72 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+
+@theme {
+  /* Professional Dark Mode Government Color Palette */
+  --color-navy-dark: #0f172a;
+  --color-navy-primary: #1e293b;
+  --color-navy-light: #334155;
+  --color-blue-primary: #3b82f6;
+  --color-blue-light: #60a5fa;
+  --color-slate-50: #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
+  --color-slate-300: #cbd5e1;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1e293b;
+  --color-slate-900: #0f172a;
+
+  /* Primary Colors - Professional Blue Theme */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+
+  /* Background Colors - Professional Dark Theme */
+  --color-background: #0f172a;
+  --color-background-secondary: #1e293b;
+  --color-surface: #1e293b;
+  --color-surface-raised: #334155;
+  --color-surface-overlay: #475569;
+  --color-accent: #3b82f6;
+  --color-accent-light: #60a5fa;
+  --color-accent-subtle: #1e40af;
+
+  /* Text Colors */
+  --color-text: #f8fafc;
+  --color-text-secondary: #e2e8f0;
+  --color-text-muted: #cbd5e1;
+  --color-text-subtle: #94a3b8;
+  --color-text-inverse: #0f172a;
+
+  /* Border Colors */
+  --color-border: #334155;
+  --color-border-light: #475569;
+  --color-border-medium: #64748b;
+  --color-border-strong: #94a3b8;
+
+  /* Interactive States */
+  --color-hover: #334155;
+  --color-hover-strong: #475569;
+  --color-active: #64748b;
+  --color-focus: #3b82f6;
+
+  /* Semantic Colors */
+  --color-success: #10b981;
+  --color-success-light: #064e3b;
+  --color-warning: #f59e0b;
+  --color-warning-light: #451a03;
+  --color-error: #ef4444;
+  --color-error-light: #450a0a;
+  --color-info: #3b82f6;
+  --color-info-light: #1e3a8a;
+}
