@@ -23,7 +23,7 @@ export default function MessagesPage() {
   }, [mobileNumber, router]);
 
   // Use the custom hook for message management
-  const { messages, loading, error, isPolling, refetch } = useMessages({
+  const { messages, error, isPolling, refetch } = useMessages({
     mobileNumber,
     pollInterval: 5000, // Fetch every 5 seconds
     autoMarkAsRead: false, // Don't auto-mark as read for demo
@@ -71,38 +71,6 @@ export default function MessagesPage() {
   const handleMicClick = () => {
     console.log("Mic clicked");
   };
-
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="flex flex-col h-screen bg-white max-w-sm mx-auto border border-gray-300 rounded-lg overflow-hidden shadow-lg">
-        <IPhoneStatusBar
-          carrier="Sprint"
-          connectionType="LTE"
-          time={currentTime}
-          batteryLevel={75}
-          showBatteryPercentage={true}
-        />
-        <IMessageHeader
-          contactName="PulsePH"
-          onBackClick={handleBackClick}
-          onDetailsClick={handleDetailsClick}
-        />
-        <div className="flex-1 flex items-center justify-center bg-white">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
-            <p className="text-gray-500 text-sm">Loading messages...</p>
-          </div>
-        </div>
-        <IMessageInput
-          onSendMessage={handleSendMessage}
-          onCameraClick={handleCameraClick}
-          onMicClick={handleMicClick}
-          placeholder="Message"
-        />
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col h-screen bg-white max-w-sm mx-auto border border-gray-300 rounded-lg overflow-hidden shadow-lg">

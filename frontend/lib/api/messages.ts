@@ -6,13 +6,6 @@ const API_BASE_URL = "http://localhost:8000";
 
 // Mock data that would come from the API
 let mockApiMessages: Message[] = [];
-let hasOnboardingMessageBeenSent = false;
-
-// Additional mock messages for future use (currently unused for onboarding test)
-// const additionalMockMessages: Omit<Message, "id" | "timestamp" | "createdAt">[] = [...];
-
-// Simulate message counter for generating new messages
-let messageCounter = mockApiMessages.length;
 
 // Using shared utility function from @/lib/utils/phone
 
@@ -74,30 +67,7 @@ export async function fetchMessages(mobileNumber: string): Promise<Message[]> {
     return [];
   } catch (error) {
     console.error("Error fetching messages:", error);
-
-    // Fallback to mock data for testing when API is not available
-    if (!hasOnboardingMessageBeenSent && mobileNumber) {
-      const now = new Date();
-      const onboardingMessage: Message = {
-        id: (++messageCounter).toString(),
-        text: "🚨 CLASS SUSPENSION ALERT: All classes in Marikina City are suspended for today, November 15, 2024 due to heavy rainfall and flooding in several areas. Stay safe! - PulsePH",
-        timestamp: now.toLocaleTimeString("en-US", {
-          hour: "numeric",
-          minute: "2-digit",
-          hour12: true,
-        }),
-        isFromUser: false,
-        isDelivered: true,
-        isRead: false,
-        createdAt: now.toISOString(),
-      };
-
-      mockApiMessages.push(onboardingMessage);
-      hasOnboardingMessageBeenSent = true;
-      return [...mockApiMessages];
-    }
-
-    return mockApiMessages;
+    return [];
   }
 }
 
@@ -106,8 +76,6 @@ export async function fetchMessages(mobileNumber: string): Promise<Message[]> {
  */
 export function resetApiState(): void {
   mockApiMessages = [];
-  hasOnboardingMessageBeenSent = false;
-  messageCounter = 0;
 }
 
 /**
