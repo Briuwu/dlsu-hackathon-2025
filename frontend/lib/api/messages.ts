@@ -2,7 +2,7 @@ import { Message, MessageApiResponse, ApiMessageData } from "@/types/message";
 import { cleanMobileNumber } from "@/lib/utils/phone";
 
 // API Configuration
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = "http://localhost:8000"; // TODO: Use env variable for production
 
 // Mock data that would come from the API
 let mockApiMessages: Message[] = [];

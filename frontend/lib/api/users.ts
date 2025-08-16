@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = "http://localhost:8000"; // TODO: Use env variable for production
 
 // Types for the API
 export interface CreateUserPayload {
