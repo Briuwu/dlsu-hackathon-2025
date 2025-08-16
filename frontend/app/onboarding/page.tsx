@@ -53,7 +53,7 @@ export default function OnboardingPage() {
   // Only fetch messages after onboarding is submitted
   const { messages: fetchedMessages } = useMessages({
     mobileNumber: shouldFetchMessages && mobileNumber ? mobileNumber : "", // Use mobile number from localStorage if available
-    pollInterval: 60000, // Very slow polling (1 minute) - essentially one-time fetch for testing
+    pollInterval: 5000, // Poll every 5 seconds for fresh messages during onboarding
     autoMarkAsRead: false,
     showNotifications: false, // Don't show notifications on onboarding
   });
