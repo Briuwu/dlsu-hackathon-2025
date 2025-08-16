@@ -6,6 +6,7 @@ HIT_STRINGS = {
         "Walang Pasok",
         "Classes Suspended",
         "Class Suspended",
+        "#walangpasok"
     ],
     "emergency_alerts": [
         "Warning",

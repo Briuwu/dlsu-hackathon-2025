@@ -4,13 +4,13 @@
 
 **Status:** Implemented
 
-**Description:** The system now sends dynamic SMS messages based on the detected keyword category. A mock LLM integration is in place to generate concise summaries from scraped content.
+**Description:** The system now sends dynamic SMS messages based on the detected keyword category. LLM integration is in place to generate concise summaries from scraped content.
 
 ### Contextual SMS from Scraped Content
 
 **Status:** Implemented
 
-**Description:** When a target keyword is found, the crawler extracts surrounding text (200 words before and after the hit string). This context is then used by an LLM (mocked for now) to generate a concise and informative SMS message, which is then sent to subscribed users.
+**Description:** When a target keyword is found, the crawler extracts surrounding text (200 words before and after the hit string). This context is then used by an LLM to generate a concise and informative SMS message, which is then sent to subscribed users.
 
 ### Granular URL Management
 
