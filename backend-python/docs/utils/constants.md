@@ -1,0 +1,1 @@
+This file contains constant values used throughout the application, such as predefined hit strings for different announcement categories and the directory for storing keyword-specific removed URLs.
