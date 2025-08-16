@@ -1,11 +1,9 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { MapPin, Bell, Loader2, ArrowLeft } from "lucide-react";
-import { Municipality } from "@/lib/philippines-data";
-import { formatLocationDisplay } from "@/lib/location-utils";
 
 interface LocationConfirmationProps {
-  locations: Municipality[];
+  locations: string[];
   phone: string;
   onConfirm: () => void;
   onGoBack: () => void;
@@ -24,7 +22,7 @@ export function LocationConfirmation({
   const handleConfirm = () => {
     const confirmationData = {
       phone: phone,
-      locations: locations.map((location) => formatLocationDisplay(location)),
+      locations: locations, // locations are already strings now
     };
     console.log("Confirmation Data:", confirmationData);
     onConfirm();
@@ -44,12 +42,9 @@ export function LocationConfirmation({
         </h3>
 
         <div className="bg-accent/10 rounded-lg p-4 mb-4 space-y-2">
-          {locations.map((location) => (
-            <div key={location.id}>
-              <p className="font-medium text-accent text-lg">{location.name}</p>
-              <p className="text-accent text-sm">
-                {location.province} • {location.region}
-              </p>
+          {locations.map((locationName, index) => (
+            <div key={`${locationName}-${index}`}>
+              <p className="font-medium text-accent text-lg">{locationName}</p>
             </div>
           ))}
         </div>

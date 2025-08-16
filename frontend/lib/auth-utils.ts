@@ -1,5 +1,3 @@
-import { type Municipality } from "./philippines-data";
-
 export interface UserAuth {
   phoneNumber: string;
   isAuthenticated: boolean;
@@ -7,7 +5,7 @@ export interface UserAuth {
 }
 
 export interface UserProfile extends UserAuth {
-  locations?: Municipality[];
+  locations?: string[];
   onboardingCompleted?: boolean;
   onboardingCompletedAt?: string;
 }

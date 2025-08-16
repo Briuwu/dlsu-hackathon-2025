@@ -23,13 +23,12 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { Municipality, philippineMunicipalities } from "@/lib/philippines-data";
-import { formatLocationDisplay } from "@/lib/location-utils";
+import { useLocationNames } from "@/hooks/useLocationNames";
 
 interface LocationSelectorProps {
-  selectedLocations: Municipality[];
-  onSelectedLocationsChange: (locations: Municipality[]) => void;
-  autoDetectedLocation: Municipality | null;
+  selectedLocations: string[];
+  onSelectedLocationsChange: (locations: string[]) => void;
+  autoDetectedLocation: string | null;
   isLoadingGeo: boolean;
 }
 
@@ -41,56 +40,79 @@ export function LocationSelector({
 }: LocationSelectorProps) {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const filteredMunicipalities = useMemo(() => {
-    let filtered = philippineMunicipalities;
+
+  // Fetch location names from API
+  const {
+    locationNames,
+    loading: apiLoading,
+    error: apiError,
+  } = useLocationNames();
+
+  // Filter location names by search query
+  const filteredLocationNames = useMemo(() => {
+    let filtered = locationNames;
 
     // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (m) =>
-          m.name.toLowerCase().includes(query) ||
-          m.province.toLowerCase().includes(query) ||
-          m.region.toLowerCase().includes(query)
-      );
+      filtered = filtered.filter((name) => name.toLowerCase().includes(query));
     }
 
     return filtered.slice(0, 50); // Limit results for performance
-  }, [searchQuery]);
+  }, [locationNames, searchQuery]);
 
-  const handleLocationToggle = (municipality: Municipality) => {
-    const isSelected = selectedLocations.some((l) => l.id === municipality.id);
+  const handleLocationToggle = (locationName: string) => {
+    const isSelected = selectedLocations.includes(locationName);
     let newLocations;
     if (isSelected) {
-      newLocations = selectedLocations.filter((l) => l.id !== municipality.id);
+      newLocations = selectedLocations.filter((l) => l !== locationName);
     } else {
       // For single location, replace existing selection
-      newLocations = [municipality];
+      newLocations = [locationName];
     }
     onSelectedLocationsChange(newLocations);
   };
 
-  const handleAutoDetectSelect = (municipality: Municipality) => {
-    const isSelected = selectedLocations.some((l) => l.id === municipality.id);
+  const handleAutoDetectSelect = (locationName: string) => {
+    const isSelected = selectedLocations.includes(locationName);
     if (!isSelected) {
-      onSelectedLocationsChange([municipality]);
+      onSelectedLocationsChange([locationName]);
     }
   };
 
+  // Combine loading states for better UX
+  const isAnyLoading = apiLoading || isLoadingGeo;
+  const loadingMessage = apiLoading
+    ? "Loading available locations..."
+    : "Detecting your location...";
+  const loadingDescription = apiLoading
+    ? "Please wait while we fetch location data"
+    : "This will help us suggest your municipality";
+
   return (
     <div className="space-y-4">
-      {/* Auto-detected location section */}
-      {isLoadingGeo && (
-        <div className="bg-accent/10 border border-accent/20 rounded-md p-3 flex items-center gap-3">
-          <Loader2 className="w-4 h-4 animate-spin text-accent" />
+      {/* Combined Loading State */}
+      {isAnyLoading && (
+        <div className="bg-blue-50 border border-blue-200 rounded-md p-3 flex items-center gap-3">
+          <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
           <div>
-            <p className="text-sm font-medium text-accent">
-              📍 Detecting your location...
+            <p className="text-sm font-medium text-blue-700">
+              📍 {loadingMessage}
             </p>
-            <p className="text-xs text-accent">
-              This will help us suggest your municipality
-            </p>
+            <p className="text-xs text-blue-600">{loadingDescription}</p>
           </div>
+        </div>
+      )}
+
+      {/* API Error State */}
+      {apiError && !apiLoading && (
+        <div className="bg-red-50 border border-red-200 rounded-md p-3">
+          <p className="text-sm font-medium text-red-700 mb-1">
+            ⚠️ Error loading locations
+          </p>
+          <p className="text-xs text-red-600">
+            {apiError}. Using fallback locations.
+          </p>
         </div>
       )}
 
@@ -106,7 +128,7 @@ export function LocationSelector({
             className="text-success border-success hover:bg-success/10"
           >
             <Navigation className="w-3 h-3 mr-1" />
-            {formatLocationDisplay(autoDetectedLocation)}
+            {autoDetectedLocation}
           </Button>
         </div>
       )}
@@ -150,20 +172,18 @@ export function LocationSelector({
                 onValueChange={setSearchQuery}
               />
               <CommandList>
-                <CommandEmpty>No municipality found.</CommandEmpty>
+                <CommandEmpty>No location found.</CommandEmpty>
                 <CommandGroup className="max-h-64 overflow-auto">
-                  {filteredMunicipalities.map((municipality) => (
+                  {filteredLocationNames.map((locationName, index) => (
                     <CommandItem
-                      key={municipality.id}
-                      value={`${municipality.name} ${municipality.province} ${municipality.region}`}
-                      onSelect={() => handleLocationToggle(municipality)}
+                      key={`${locationName}-${index}`}
+                      value={locationName}
+                      onSelect={() => handleLocationToggle(locationName)}
                     >
                       <Check
                         className={cn(
                           "mr-2 h-4 w-4",
-                          selectedLocations.some(
-                            (l) => l.id === municipality.id
-                          )
+                          selectedLocations.includes(locationName)
                             ? "opacity-100"
                             : "opacity-0"
                         )}
@@ -171,10 +191,7 @@ export function LocationSelector({
                       <MapPin className="w-4 h-4 mr-2 text-gray-400 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className="font-medium truncate">
-                          {municipality.name}
-                        </div>
-                        <div className="text-xs text-gray-500 truncate">
-                          {municipality.province} • {municipality.region}
+                          {locationName}
                         </div>
                       </div>
                     </CommandItem>
@@ -193,17 +210,17 @@ export function LocationSelector({
             <p className="text-sm font-medium text-text">Selected location:</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            {selectedLocations.map((location) => (
+            {selectedLocations.map((locationName, index) => (
               <div
-                key={location.id}
+                key={`${locationName}-${index}`}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-accent text-white border border-accent"
               >
                 <MapPin className="w-4 h-4" />
-                {formatLocationDisplay(location)}
+                {locationName}
                 <button
-                  onClick={() => handleLocationToggle(location)}
+                  onClick={() => handleLocationToggle(locationName)}
                   className="ml-1 rounded-full hover:bg-white/20 p-1 transition-colors"
-                  aria-label={`Remove ${formatLocationDisplay(location)}`}
+                  aria-label={`Remove ${locationName}`}
                 >
                   <X className="w-3 h-3" />
                 </button>

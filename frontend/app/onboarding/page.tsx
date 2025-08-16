@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,8 +17,8 @@ import { LocationConfirmation } from "@/components/onboarding/LocationConfirmati
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useNotification } from "@/contexts/NotificationContext";
 import { useMessages } from "@/hooks/useMessages";
-import { type Municipality } from "@/lib/philippines-data";
 import { findNearestMunicipality } from "@/lib/location-utils";
+import { createUser } from "@/lib/api/users";
 import {
   getAuthData,
   saveUserProfile,
@@ -32,17 +32,15 @@ import {
 type OnboardingStep = "location" | "confirmation" | "complete";
 
 export default function OnboardingPage() {
-  const router = useRouter();
   const [currentStep, setCurrentStep] = useState<OnboardingStep>("location");
-  const [selectedLocations, setSelectedLocations] = useState<Municipality[]>(
-    []
-  );
+  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [userAuth, setUserAuth] = useState<UserAuth | null>(null);
   const [isReturningUser, setIsReturningUser] = useState(false);
-  const [autoDetectedLocation, setAutoDetectedLocation] =
-    useState<Municipality | null>(null);
+  const [autoDetectedLocation, setAutoDetectedLocation] = useState<
+    string | null
+  >(null);
   const [notificationShown, setNotificationShown] = useState(false);
   const [shouldFetchMessages, setShouldFetchMessages] = useState(false);
 
@@ -80,7 +78,22 @@ export default function OnboardingPage() {
       setIsReturningUser(true);
       const existingProfile = getUserProfile();
       if (existingProfile?.locations && existingProfile.locations.length > 0) {
-        setSelectedLocations(existingProfile.locations);
+        // Ensure locations are strings (handle legacy Municipality objects)
+        const locationStrings = existingProfile.locations.map((location) => {
+          // If it's a string, return as-is; if it's a Municipality object, extract the name
+          if (typeof location === "string") {
+            return location;
+          } else if (
+            typeof location === "object" &&
+            location !== null &&
+            "name" in location
+          ) {
+            return (location as { name: string }).name;
+          } else {
+            return String(location);
+          }
+        });
+        setSelectedLocations(locationStrings);
         setCurrentStep("confirmation");
       }
     }
@@ -93,7 +106,8 @@ export default function OnboardingPage() {
         coordinates.latitude,
         coordinates.longitude
       );
-      setAutoDetectedLocation(nearest);
+      // Extract just the name from the Municipality object
+      setAutoDetectedLocation(nearest ? nearest.name : null);
     }
   }, [coordinates]);
 
@@ -140,9 +154,20 @@ export default function OnboardingPage() {
     if (selectedLocations.length === 0 || !userAuth) return;
 
     setLoading(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+    setError("");
 
+    try {
+      // Call the API to create/update user with subscribed LGUs
+      const apiResponse = await createUser({
+        number: userAuth.phoneNumber,
+        subscribed_lgus: selectedLocations,
+      });
+
+      if (!apiResponse.success) {
+        throw new Error(apiResponse.message || "Failed to save user data");
+      }
+
+      // Save profile locally after successful API call
       const userProfile: UserProfile = {
         ...userAuth,
         locations: selectedLocations,
@@ -156,8 +181,12 @@ export default function OnboardingPage() {
       setShouldFetchMessages(true);
 
       setCurrentStep("complete");
-    } catch {
-      setError("Failed to save profile. Please try again.");
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to save profile. Please try again.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -262,7 +291,7 @@ export default function OnboardingPage() {
             ) : (
               <LocationConfirmation
                 locations={selectedLocations}
-                phone={userAuth.phoneNumber}
+                phone={userAuth?.phoneNumber || ""}
                 onConfirm={handleComplete}
                 onGoBack={() => setCurrentStep("location")}
                 loading={loading}
