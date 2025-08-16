@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { MapPin, Bell, Loader2, ArrowLeft } from "lucide-react";
+import { cleanMobileNumber } from "@/lib/utils/phone";
 
 interface LocationConfirmationProps {
   locations: string[];
@@ -21,7 +22,7 @@ export function LocationConfirmation({
 }: LocationConfirmationProps) {
   const handleConfirm = () => {
     const confirmationData = {
-      phone: phone,
+      phone: cleanMobileNumber(phone),
       locations: locations, // locations are already strings now
     };
     console.log("Confirmation Data:", confirmationData);

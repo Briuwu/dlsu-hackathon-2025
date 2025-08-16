@@ -19,6 +19,7 @@ import { useNotification } from "@/contexts/NotificationContext";
 import { useMessages } from "@/hooks/useMessages";
 import { findNearestMunicipality } from "@/lib/location-utils";
 import { createUser } from "@/lib/api/users";
+import { cleanMobileNumber } from "@/lib/utils/phone";
 import {
   getAuthData,
   saveUserProfile,
@@ -157,9 +158,12 @@ export default function OnboardingPage() {
     setError("");
 
     try {
+      // Clean phone number by removing spaces before sending to API
+      const cleanedPhoneNumber = cleanMobileNumber(userAuth.phoneNumber);
+
       // Call the API to create/update user with subscribed LGUs
       const apiResponse = await createUser({
-        number: userAuth.phoneNumber,
+        number: cleanedPhoneNumber,
         subscribed_lgus: selectedLocations,
       });
 

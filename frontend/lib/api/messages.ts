@@ -1,4 +1,5 @@
 import { Message, MessageApiResponse, ApiMessageData } from "@/types/message";
+import { cleanMobileNumber } from "@/lib/utils/phone";
 
 // API Configuration
 const API_BASE_URL = "http://localhost:8000";
@@ -13,12 +14,7 @@ let hasOnboardingMessageBeenSent = false;
 // Simulate message counter for generating new messages
 let messageCounter = mockApiMessages.length;
 
-/**
- * Clean mobile number by removing spaces and other formatting
- */
-function cleanMobileNumber(mobileNumber: string): string {
-  return mobileNumber.replace(/\s/g, "");
-}
+// Using shared utility function from @/lib/utils/phone
 
 /**
  * Transform API data to internal Message format
