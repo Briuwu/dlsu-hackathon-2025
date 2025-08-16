@@ -21,6 +21,35 @@ interface UseMessagesReturn {
   stopPolling: () => void;
 }
 
+/**
+ * Helper function to merge new messages with existing ones, filtering out duplicates by _id
+ * @param existingMessages - Current messages array
+ * @param newMessages - New messages to potentially add
+ * @returns Merged array without duplicates, sorted by creation date
+ */
+function mergeMessagesWithoutDuplicates(
+  existingMessages: Message[],
+  newMessages: Message[]
+): Message[] {
+  // Create a Set of existing message IDs for efficient lookup
+  const existingIds = new Set(existingMessages.map((msg) => msg.id));
+
+  // Filter out messages that already exist
+  const uniqueNewMessages = newMessages.filter(
+    (msg) => !existingIds.has(msg.id)
+  );
+
+  // Combine existing and new unique messages
+  const combinedMessages = [...existingMessages, ...uniqueNewMessages];
+
+  // Sort by creation date (oldest first) to maintain consistent ordering
+  return combinedMessages.sort((a, b) => {
+    const dateA = new Date(a.createdAt || 0).getTime();
+    const dateB = new Date(b.createdAt || 0).getTime();
+    return dateA - dateB;
+  });
+}
+
 export function useMessages(options: UseMessagesOptions): UseMessagesReturn {
   const {
     mobileNumber,
@@ -51,17 +80,26 @@ export function useMessages(options: UseMessagesOptions): UseMessagesReturn {
       const fetchedMessages = await fetchMessages(mobileNumber);
 
       setMessages((prevMessages) => {
+        // Merge messages without duplicates
+        const mergedMessages = mergeMessagesWithoutDuplicates(
+          prevMessages,
+          fetchedMessages
+        );
+
         // Only update if messages have actually changed
-        if (JSON.stringify(prevMessages) !== JSON.stringify(fetchedMessages)) {
+        if (JSON.stringify(prevMessages) !== JSON.stringify(mergedMessages)) {
+          // Find truly new messages by comparing with previous state
+          const existingIds = new Set(prevMessages.map((msg) => msg.id));
+          const newMessages = fetchedMessages.filter(
+            (msg) => !existingIds.has(msg.id)
+          );
+
           // Check for new messages and show notifications
           if (
             showNotifications &&
             !isInitialLoadRef.current &&
-            fetchedMessages.length > previousMessageCountRef.current
+            newMessages.length > 0
           ) {
-            const newMessages = fetchedMessages.slice(
-              previousMessageCountRef.current
-            );
             newMessages.forEach((message) => {
               // Only show notifications for messages from PulsePH (not user messages)
               if (!message.isFromUser) {
@@ -77,25 +115,32 @@ export function useMessages(options: UseMessagesOptions): UseMessagesReturn {
             });
           }
 
-          // Update the previous message count
-          previousMessageCountRef.current = fetchedMessages.length;
+          // Update the previous message count to the total merged count
+          previousMessageCountRef.current = mergedMessages.length;
 
-          return fetchedMessages;
+          return mergedMessages;
         }
         return prevMessages;
       });
 
-      // Auto mark as read if enabled
+      // Auto mark as read if enabled - work with the latest merged messages
       if (autoMarkAsRead) {
-        const unreadMessages = fetchedMessages.filter(
-          (msg) => !msg.isRead && !msg.isFromUser
-        );
-        if (unreadMessages.length > 0) {
-          await markMessagesAsRead(
-            mobileNumber,
-            unreadMessages.map((msg) => msg.id)
+        // Get the current messages state to find unread messages
+        setMessages((currentMessages) => {
+          const unreadMessages = currentMessages.filter(
+            (msg) => !msg.isRead && !msg.isFromUser
           );
-        }
+          if (unreadMessages.length > 0) {
+            // Mark as read asynchronously without blocking the state update
+            markMessagesAsRead(
+              mobileNumber,
+              unreadMessages.map((msg) => msg.id)
+            ).catch((err) => {
+              console.error("Error auto-marking messages as read:", err);
+            });
+          }
+          return currentMessages; // Return unchanged, markMessagesAsRead will update separately
+        });
       }
     } catch (err) {
       const errorMessage =
