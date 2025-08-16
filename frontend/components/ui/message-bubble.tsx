@@ -74,18 +74,23 @@ export const Conversation: React.FC<ConversationProps> = ({
   messages,
   className,
 }) => {
+  // Ensure messages is always an array
+  const safeMessages = Array.isArray(messages) ? messages : [];
+
   return (
     <div className={cn("flex flex-col px-4 py-4 space-y-2", className)}>
-      {messages.map((message) => (
-        <MessageBubble
-          key={message.id}
-          message={message.text}
-          timestamp={message.timestamp}
-          isFromUser={message.isFromUser}
-          isDelivered={message.isDelivered}
-          isRead={message.isRead}
-        />
-      ))}
+      {safeMessages
+        .filter((message) => message && message.id && message.text)
+        .map((message) => (
+          <MessageBubble
+            key={message.id}
+            message={message.text}
+            timestamp={message.timestamp}
+            isFromUser={message.isFromUser}
+            isDelivered={message.isDelivered}
+            isRead={message.isRead}
+          />
+        ))}
     </div>
   );
 };

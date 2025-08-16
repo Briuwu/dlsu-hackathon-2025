@@ -10,6 +10,29 @@ let mockApiMessages: Message[] = [];
 // Using shared utility function from @/lib/utils/phone
 
 /**
+ * Validates if API data has all required fields
+ */
+function isValidApiMessageData(apiData: unknown): apiData is ApiMessageData {
+  if (!apiData || typeof apiData !== "object" || apiData === null) {
+    return false;
+  }
+
+  const data = apiData as Record<string, unknown>;
+
+  return (
+    "_id" in data &&
+    "sms_message" in data &&
+    "created_at" in data &&
+    typeof data._id === "string" &&
+    data._id.trim() !== "" &&
+    typeof data.sms_message === "string" &&
+    data.sms_message.trim() !== "" &&
+    typeof data.created_at === "string" &&
+    data.created_at.trim() !== ""
+  );
+}
+
+/**
  * Transform API data to internal Message format
  */
 function transformApiDataToMessage(apiData: ApiMessageData): Message {
@@ -59,11 +82,17 @@ export async function fetchMessages(mobileNumber: string): Promise<Message[]> {
     const apiResponse: MessageApiResponse = await response.json();
 
     // Transform the API data to our internal format
-    if (apiResponse.data) {
+    if (apiResponse.data && isValidApiMessageData(apiResponse.data)) {
       const transformedMessage = transformApiDataToMessage(apiResponse.data);
       return [transformedMessage];
     }
 
+    // Log when invalid or empty data is received for debugging
+    if (apiResponse.data) {
+      console.log("Invalid API message data received:", apiResponse.data);
+    }
+
+    // Return empty array if no valid data or empty object received
     return [];
   } catch (error) {
     console.error("Error fetching messages:", error);
