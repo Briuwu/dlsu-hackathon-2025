@@ -1,0 +1,1 @@
+This module handles sending SMS notifications to subscribed users via Twilio. It now also saves the SMS details to a database collection. It integrates with the LLM client to generate dynamic SMS messages based on the scraped content.

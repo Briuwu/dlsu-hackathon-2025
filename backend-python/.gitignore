@@ -1,0 +1,15 @@
+# Virtual Environment
+.venv/
+venv/
+__pycache__/
+
+# Environment variables
+.env
+
+# Application state files
+removed_urls.txt
+last_run_date.txt
+
+# IDE specific files
+.vscode/
+.idea/
