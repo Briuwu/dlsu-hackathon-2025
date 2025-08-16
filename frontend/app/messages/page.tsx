@@ -104,7 +104,7 @@ export default function MessagesPage() {
       )}
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto bg-white">
+      <div className="flex-1 overflow-y-auto bg-white overscroll-contain">
         <Conversation messages={messages} />
       </div>
 
