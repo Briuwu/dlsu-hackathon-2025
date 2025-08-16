@@ -49,10 +49,15 @@ export async function fetchMessages(mobileNumber: string): Promise<Message[]> {
 
     // Clean mobile number by removing any spaces
     const cleanedNumber = cleanMobileNumber(mobileNumber);
-    console.log("Cleaned number:", cleanedNumber);
 
-    // Real API call to your backend (+ sign sent directly in URL)
-    const response = await fetch(`${API_BASE_URL}/messages/${cleanedNumber}`);
+    // Remove + sign for messages API endpoints
+    const numberForMessagesAPI = cleanedNumber.replace(/^\+/, "");
+    console.log("Cleaned number for messages API:", numberForMessagesAPI);
+
+    // Real API call to your backend (+ sign removed from URL)
+    const response = await fetch(
+      `${API_BASE_URL}/messages/${numberForMessagesAPI}`
+    );
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -118,9 +123,12 @@ export async function markMessagesAsRead(
     // Clean mobile number by removing any spaces
     const cleanedNumber = cleanMobileNumber(mobileNumber);
 
-    // Real API call to mark messages as read (+ sign sent directly in URL)
+    // Remove + sign for messages API endpoints
+    const numberForMessagesAPI = cleanedNumber.replace(/^\+/, "");
+
+    // Real API call to mark messages as read (+ sign removed from URL)
     const response = await fetch(
-      `${API_BASE_URL}/messages/${cleanedNumber}/read`,
+      `${API_BASE_URL}/messages/${numberForMessagesAPI}/read`,
       {
         method: "PATCH",
         headers: {
