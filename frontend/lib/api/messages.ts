@@ -49,8 +49,9 @@ export async function fetchMessages(mobileNumber: string): Promise<Message[]> {
 
     // Clean mobile number by removing any spaces
     const cleanedNumber = cleanMobileNumber(mobileNumber);
+    console.log("Cleaned number:", cleanedNumber);
 
-    // Real API call to your backend
+    // Real API call to your backend (+ sign sent directly in URL)
     const response = await fetch(`${API_BASE_URL}/messages/${cleanedNumber}`);
 
     if (!response.ok) {
@@ -117,7 +118,7 @@ export async function markMessagesAsRead(
     // Clean mobile number by removing any spaces
     const cleanedNumber = cleanMobileNumber(mobileNumber);
 
-    // Real API call to mark messages as read
+    // Real API call to mark messages as read (+ sign sent directly in URL)
     const response = await fetch(
       `${API_BASE_URL}/messages/${cleanedNumber}/read`,
       {

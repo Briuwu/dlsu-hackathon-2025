@@ -1,7 +1,7 @@
 /**
- * Clean mobile number by removing spaces and other formatting
+ * Clean mobile number by removing spaces only (preserves + sign and other characters)
  * @param mobileNumber - The mobile number to clean
- * @returns Cleaned mobile number without spaces
+ * @returns Cleaned mobile number without spaces but with + sign preserved
  */
 export function cleanMobileNumber(mobileNumber: string): string {
   return mobileNumber.replace(/\s/g, "");
